@@ -1,12 +1,13 @@
-# BlenderWebPractice
+# BlenderWebPractice — FORMA
 
-A small **React + TypeScript + Vite** playground for practicing how to get 3D
-objects (especially Blender models) running in a website, using
+A **React + TypeScript + Vite** project for practicing how to get 3D objects
+(especially Blender models) running on the web, built with
 [react-three-fiber](https://r3f.docs.pmnd.rs/) and
 [drei](https://github.com/pmndrs/drei).
 
-It boots with a spinning placeholder shape so you can confirm everything works,
-then you swap in your own exported model.
+It's grown into **FORMA** — a scroll-driven, cinematic one-page 3D homepage in
+the spirit of Andrii Bachynskyi's concept work: one dark stage, a glowing accent,
+oversized overlaid type, and a camera that moves as you scroll.
 
 ## Run it
 
@@ -15,74 +16,58 @@ npm install      # first time only
 npm run dev      # starts Vite, prints a http://localhost:5173 URL
 ```
 
-Open the URL. Drag to orbit, scroll to zoom.
+Scroll the page — the camera moves through three "acts". Other scripts:
+`npm run build` (type-check + production build into `dist/`), `npm run preview`.
 
-Other scripts: `npm run build` (type-check + production build into `dist/`),
-`npm run preview` (serve the built output).
+## How it works
 
-## Project layout
+A full-viewport `<Canvas>` is wrapped in drei's `<ScrollControls pages={3}>`.
+A camera rig reads the scroll offset each frame and interpolates between three
+keyframes, while the objects idle-float. HTML copy is layered over the 3D via
+drei's `<Scroll html>`.
 
 ```
-public/models/        ← put your exported .glb files here (served at /models/...)
+Objects/SmoothCube.glb   ← the rounded "monolith" (imported as a bundled asset)
+docs/superpowers/specs/  ← the design spec for this homepage
 src/
-  App.tsx             ← <Canvas> + the on-screen overlay
-  Scene.tsx           ← lights, camera controls, shadows; swap Placeholder ↔ Model here
-  Placeholder.tsx     ← the default spinning torus knot
-  Model.tsx           ← loads a .glb via useGLTF
+  App.tsx          ← <Canvas> + <ScrollControls> + fixed wordmark/nav
+  Experience.tsx   ← lights, environment, objects, scroll camera rig, bloom
+  Overlay.tsx      ← the three HTML "acts" (headline, line, closing + footer)
+  Model.tsx        ← loads a .glb via useGLTF (accepts position/rotation/scale)
+  Knot.tsx         ← the glowing accent torus knot
 ```
 
-## How to export a model from Blender and show it on the site
+The three acts: **(1)** establish — "STILL IN MOTION" over the monolith;
+**(2)** camera pushes into the rounded surface; **(3)** rises to the glowing knot
+with a closing line + footer.
 
-### 1. Export from Blender as GLB
+## Swapping in your own model
 
-1. In Blender, select the object(s) you want (or export everything).
-2. **File → Export → glTF 2.0 (.glb/.gltf)**.
-3. In the export panel on the right:
-   - **Format:** `glTF Binary (.glb)` — one self-contained file with meshes,
-     materials, and textures baked in. Easiest for the web.
-   - **Include:** tick **Selected Objects** if you only want your selection.
-   - **Transform:** leave **+Y Up** ticked (three.js expects Y-up).
-   - **Geometry:** keep **Apply Modifiers** on; tick **UVs**, **Normals**, and
-     **Materials** if your model is textured.
-   - **(Optional) Compression:** enabling **Draco** shrinks the file a lot. If
-     you use it, see the Draco note below.
-4. Save it as **`public/models/model.glb`** in this project.
+`Objects/SmoothCube.glb` is loaded in [src/Experience.tsx](src/Experience.tsx)
+via a Vite asset import:
 
-> Keep it light: a few hundred KB to a few MB is ideal for the web. Decimate
-> dense meshes and resize textures (1–2K) in Blender before exporting.
-
-### 2. Show it in the scene
-
-Open [src/Scene.tsx](src/Scene.tsx) and:
-
-1. Uncomment the import at the top:
-   ```ts
-   import { Model } from './Model'
-   ```
-2. Comment out `<Placeholder />` and uncomment the `<Model />` line:
-   ```tsx
-   {/* <Placeholder /> */}
-   <Model url="/models/model.glb" scale={1} />
-   ```
-3. Save — Vite hot-reloads and your model appears. Adjust `scale`, the camera
-   `position` in [src/App.tsx](src/App.tsx), and the lights until it looks right.
-
-That's it. The `url` is relative to `public/`, so `public/models/model.glb`
-is referenced as `/models/model.glb`.
-
-### Draco-compressed exports (optional)
-
-If you ticked **Draco** in Blender, tell drei where the decoder lives:
-
-```tsx
-import { useGLTF } from '@react-three/drei'
-useGLTF('/models/model.glb', '/draco/') // decoder files in public/draco/
+```ts
+import myModelUrl from '../Objects/MyModel.glb?url'
+// ...
+<Model url={myModelUrl} position={[0, 0, 0]} />
 ```
 
-Grab the decoder from `node_modules/three/examples/jsm/libs/draco/` and copy it
-into `public/draco/`. For most practice models you can skip Draco entirely.
+Drop a new `.glb` into `Objects/`, change the import, and reposition. (Files in
+`public/` instead are referenced by plain path, e.g. `"/models/x.glb"` — no
+import needed.) Tune the camera keyframes (`KEYS`) and lights in `Experience.tsx`.
 
-### Animations (optional next step)
+## Exporting from Blender (GLB)
 
-If your GLB has animations, swap `useGLTF` for drei's `useAnimations` to play
-clips. Ask and we can wire that up.
+1. **File → Export → glTF 2.0 (.glb/.gltf)**, format **glTF Binary (.glb)**.
+2. **Data → Mesh → Apply Modifiers ✅** — without this, Bevel/Subdivision
+   *modifiers* are ignored and you export the un-rounded base mesh.
+3. If you scaled the object in Object Mode, **Ctrl+A → Apply → Scale** so it
+   isn't stretched on the web (an unapplied scale rides along as a node scale).
+4. **Textures:** use a **Principled BSDF** material; image textures embed into
+   the `.glb` automatically. Procedural textures (noise/voronoi) must be **baked**
+   to images first, and the mesh **UV-unwrapped** (`U → Smart UV Project`). Keep
+   **UVs/Normals** (and **Tangents** for normal maps) ticked on export.
+5. Keep it light (a few hundred KB–few MB); resize textures to 1–2K.
+
+> PBR materials (metallic/glossy) need something to reflect — the scene already
+> includes an `<Environment>` built from light cards, plus bloom for glow.
