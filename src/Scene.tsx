@@ -7,6 +7,14 @@ import { Model } from './Model'
 import smoothCubeUrl from '../Objects/SmoothCube.glb?url'
 
 export function Scene() {
+  // SmoothCube is ~6 units tall (its node carries a ~3x scale on the up axis),
+  // and it's centered on its position. Drop it low enough that its TOP sits
+  // just below the placeholder, leaving a small floating gap.
+  const cubeHalfHeight = 2.99
+  const placeholderBottom = -1.1
+  const gap = 0.3
+  const cubeY = placeholderBottom - gap - cubeHalfHeight // ≈ -4.39
+
   return (
     <>
       {/* Lighting — tweak these to see how PBR materials react. */}
@@ -15,18 +23,24 @@ export function Scene() {
       <directionalLight position={[5, 8, 5]} intensity={1.4} castShadow />
 
       <Suspense fallback={<Html center>Loading…</Html>}>
-        {/* A built-in spinning shape. */}
+        {/* A built-in spinning shape, floating just above the cube. */}
         <Placeholder />
 
-        {/* Your imported Blender model, sitting below the placeholder. */}
-        <Model url={smoothCubeUrl} position={[0, -2.4, 0]} />
+        {/* Your imported SmoothCube, dropped down so it clears the placeholder. */}
+        <Model url={smoothCubeUrl} position={[0, cubeY, 0]} />
       </Suspense>
 
-      {/* Soft fake shadow on the "ground" so the cube feels grounded. */}
-      <ContactShadows position={[0, -3.4, 0]} opacity={0.45} scale={12} blur={2.5} far={4} />
+      {/* Soft fake shadow on the "ground", sitting at the cube's base. */}
+      <ContactShadows
+        position={[0, cubeY - cubeHalfHeight, 0]}
+        opacity={0.45}
+        scale={12}
+        blur={2.5}
+        far={4}
+      />
 
-      {/* Mouse/touch camera controls. Target sits between the two objects. */}
-      <OrbitControls makeDefault enableDamping target={[0, -1, 0]} />
+      {/* Mouse/touch camera controls. Target sits roughly mid-scene. */}
+      <OrbitControls makeDefault enableDamping target={[0, -3, 0]} />
     </>
   )
 }
