@@ -9,9 +9,9 @@ import {
 } from '@react-three/drei'
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
 import { Vector3 } from 'three'
-import { Model } from './Model'
+import { easing } from 'maath'
+import { Pillar } from './Pillar'
 import { Knot } from './Knot'
-import smoothCubeUrl from '../Objects/SmoothCube.glb?url'
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 const smooth = (t: number) => t * t * (3 - 2 * t) // smoothstep easing
@@ -21,33 +21,46 @@ type Key = { pos: [number, number, number]; look: [number, number, number] }
 // Camera keyframes for the three scroll acts.
 const KEYS: Key[] = [
   { pos: [4.5, 1.2, 12], look: [0, 0.4, 0] }, // Act 1 — establish (wide)
-  { pos: [-3.6, -0.8, 6.5], look: [0, -0.8, 0] }, // Act 2 — feature the monolith
-  { pos: [2.4, 4.4, 7], look: [0, 3.7, 0] }, // Act 3 — rise to the knot
+  { pos: [-3.6, -0.8, 6.5], look: [0, -0.6, 0] }, // Act 2 — feature the column
+  { pos: [2.4, 4.8, 7], look: [0, 4.0, 0] }, // Act 3 — rise to the knot
 ]
 
-/** Drives the camera along KEYS based on scroll position, every frame. */
+// Scratch vectors reused each frame (avoid per-frame allocation).
+const tmpPos = new Vector3()
+const tmpLook = new Vector3()
+
+/**
+ * Drives the camera along KEYS based on scroll position. The camera is NOT
+ * snapped to the scroll value — it's *eased* toward the scroll-derived target
+ * every frame with framerate-independent damping. This absorbs the coarse,
+ * discrete steps a desktop mouse wheel produces, so motion stays smooth on any
+ * input device (trackpad, touch, or wheel) and any refresh rate.
+ */
 function CameraRig() {
   const scroll = useScroll()
   const { camera } = useThree()
   const look = useRef(new Vector3(...KEYS[0].look))
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     const t = scroll.offset * (KEYS.length - 1) // 0 → (KEYS-1)
     const i = Math.min(Math.floor(t), KEYS.length - 2)
     const f = smooth(t - i)
     const a = KEYS[i]
     const b = KEYS[i + 1]
 
-    camera.position.set(
+    tmpPos.set(
       lerp(a.pos[0], b.pos[0], f),
       lerp(a.pos[1], b.pos[1], f),
       lerp(a.pos[2], b.pos[2], f),
     )
-    look.current.set(
+    tmpLook.set(
       lerp(a.look[0], b.look[0], f),
       lerp(a.look[1], b.look[1], f),
       lerp(a.look[2], b.look[2], f),
     )
+
+    easing.damp3(camera.position, tmpPos, 0.25, delta)
+    easing.damp3(look.current, tmpLook, 0.25, delta)
     camera.lookAt(look.current)
   })
 
@@ -71,11 +84,11 @@ export function Experience() {
         <Lightformer intensity={1.5} position={[6, -2, 3]} scale={[6, 6, 1]} color="#5b8cff" />
       </Environment>
 
-      {/* The monolith — the imposing matte subject. */}
-      <Model url={smoothCubeUrl} position={[0, 0, 0]} />
+      {/* The column — a procedurally generated Greek/Roman pillar. */}
+      <Pillar />
 
-      {/* The glowing accent form, floating above the monolith. */}
-      <Float speed={1.4} rotationIntensity={0.5} floatIntensity={1.1} position={[0, 3.7, 0]}>
+      {/* The glowing accent form, floating above the capital. */}
+      <Float speed={1.4} rotationIntensity={0.5} floatIntensity={1.1} position={[0, 4.0, 0]}>
         <Knot />
       </Float>
 

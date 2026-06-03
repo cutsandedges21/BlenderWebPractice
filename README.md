@@ -22,29 +22,39 @@ Scroll the page — the camera moves through three "acts". Other scripts:
 ## How it works
 
 A full-viewport `<Canvas>` is wrapped in drei's `<ScrollControls pages={3}>`.
-A camera rig reads the scroll offset each frame and interpolates between three
-keyframes, while the objects idle-float. HTML copy is layered over the 3D via
-drei's `<Scroll html>`.
+A camera rig reads the scroll offset each frame, interpolates between three
+keyframes, and then **eases** the camera toward that target with framerate-
+independent damping (`maath`'s `easing.damp3`). That last step matters: a desktop
+mouse wheel scrolls in coarse, discrete steps, and easing absorbs them so the
+motion stays smooth on wheel, trackpad, and touch alike. HTML copy is layered
+over the 3D via drei's `<Scroll html>`.
 
 ```
-Objects/SmoothCube.glb   ← the rounded "monolith" (imported as a bundled asset)
 docs/superpowers/specs/  ← the design spec for this homepage
+Objects/SmoothCube.glb   ← an example imported model (no longer used by the scene)
 src/
   App.tsx          ← <Canvas> + <ScrollControls> + fixed wordmark/nav
-  Experience.tsx   ← lights, environment, objects, scroll camera rig, bloom
-  Overlay.tsx      ← the three HTML "acts" (headline, line, closing + footer)
-  Model.tsx        ← loads a .glb via useGLTF (accepts position/rotation/scale)
+  Experience.tsx   ← lights, environment, scroll camera rig (KEYS), bloom
+  Pillar.tsx       ← the procedural Greek/Roman column (lathe + flutes, no import)
   Knot.tsx         ← the glowing accent torus knot
+  Overlay.tsx      ← the three HTML "acts" (headline, line, closing + footer)
+  Model.tsx        ← loads a .glb via useGLTF (kept as a reference example)
 ```
 
-The three acts: **(1)** establish — "STILL IN MOTION" over the monolith;
-**(2)** camera pushes into the rounded surface; **(3)** rises to the glowing knot
+The three acts: **(1)** establish — "STILL IN MOTION" over the column;
+**(2)** camera pushes into the fluted shaft; **(3)** rises to the glowing knot
 with a closing line + footer.
 
-## Swapping in your own model
+## Code vs. import — two ways to add shapes
 
-`Objects/SmoothCube.glb` is loaded in [src/Experience.tsx](src/Experience.tsx)
-via a Vite asset import:
+The column ([src/Pillar.tsx](src/Pillar.tsx)) is generated **entirely in code**:
+a `latheGeometry` revolves a hand-defined profile (base → entasis shaft →
+capital) and 20 flutes are placed around it with `cos/sin`. Good for
+mathematical/parametric shapes — no Blender needed.
+
+For organic/sculpted/textured assets, import a `.glb` instead. [Model.tsx](src/Model.tsx)
+shows the pattern (it loads `SmoothCube.glb`). To use your own: drop a `.glb`
+into `Objects/`, then in a scene file:
 
 ```ts
 import myModelUrl from '../Objects/MyModel.glb?url'
@@ -52,9 +62,8 @@ import myModelUrl from '../Objects/MyModel.glb?url'
 <Model url={myModelUrl} position={[0, 0, 0]} />
 ```
 
-Drop a new `.glb` into `Objects/`, change the import, and reposition. (Files in
-`public/` instead are referenced by plain path, e.g. `"/models/x.glb"` — no
-import needed.) Tune the camera keyframes (`KEYS`) and lights in `Experience.tsx`.
+(Files in `public/` are instead referenced by plain path, e.g. `"/models/x.glb"`.)
+Tune the camera keyframes (`KEYS`) and lights in `Experience.tsx`.
 
 ## Exporting from Blender (GLB)
 

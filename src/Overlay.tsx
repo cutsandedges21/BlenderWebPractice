@@ -16,8 +16,8 @@ export function Overlay() {
 
       <section className="act act--feature">
         <p className="line">
-          Geometry, rounded by hand —<br />
-          rendered in real time.
+          Turned on a lathe of math —<br />
+          not a single imported mesh.
         </p>
       </section>
 
