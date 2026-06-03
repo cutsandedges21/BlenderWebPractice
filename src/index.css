@@ -95,15 +95,19 @@ body {
   text-shadow: 0 0 60px rgba(91, 140, 255, 0.25);
 }
 
-.scroll-cue {
-  position: absolute;
-  bottom: 36px;
+/* Persistent scroll hint, fixed to the viewport bottom (z below .cut-fade so it
+   disappears behind the black during the page cut). */
+.scroll-indicator {
+  position: fixed;
+  bottom: 28px;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 15;
   font-size: 12px;
   letter-spacing: 0.4em;
   text-transform: uppercase;
   color: var(--muted);
+  pointer-events: none;
   animation: pulse 2.4s ease-in-out infinite;
 }
 

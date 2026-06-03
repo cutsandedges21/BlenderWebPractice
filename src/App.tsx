@@ -17,6 +17,9 @@ export default function App() {
         </nav>
       </header>
 
+      {/* Persistent scroll hint, always pinned to the bottom of the viewport. */}
+      <div className="scroll-indicator" aria-hidden="true">scroll ↓</div>
+
       {/* Full-screen black layer for the page-to-page cut (opacity set by scroll). */}
       <div className="cut-fade" ref={fadeRef} aria-hidden="true" />
 

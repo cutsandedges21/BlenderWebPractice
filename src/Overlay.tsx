@@ -13,7 +13,6 @@ export function Overlay() {
           <br />
           in Motion
         </h1>
-        <span className="scroll-cue">scroll ↓</span>
       </section>
 
       <section className="act act--feature">
@@ -34,7 +33,6 @@ export function Overlay() {
           <br />
           Circle
         </h1>
-        <span className="scroll-cue">keep scrolling ↓</span>
       </section>
 
       <section className="act act--close">
