@@ -1,10 +1,12 @@
 /**
- * The HTML copy layer. Three full-height "acts" stacked to match
- * <ScrollControls pages={3} />, rendered inside drei's <Scroll html>.
+ * The HTML copy layer. Five full-height "acts" stacked to match
+ * <ScrollControls pages={5} />, rendered inside drei's <Scroll html>.
+ * Acts 1–3 are page one (FORMA column); acts 4–5 are page two (Stonehenge).
  */
 export function Overlay() {
   return (
     <div className="overlay-root">
+      {/* ── Page 1: FORMA column ── */}
       <section className="act act--hero">
         <h1 className="headline">
           Still
@@ -23,10 +25,28 @@ export function Overlay() {
 
       <section className="act act--close">
         <p className="line">Built in the browser with three.js.</p>
+      </section>
+
+      {/* ── Page 2: the Stonehenge field ── */}
+      <section className="act act--hero">
+        <h1 className="headline">
+          The
+          <br />
+          Circle
+        </h1>
+        <span className="scroll-cue">keep scrolling ↓</span>
+      </section>
+
+      <section className="act act--close">
+        <p className="line">Five stones, placed by math.</p>
         <footer className="foot">
           <span>Mossimo</span>
           <span className="dot">·</span>
-          <a href="https://github.com/cutsandedges21/BlenderWebPractice" target="_blank" rel="noreferrer">
+          <a
+            href="https://github.com/cutsandedges21/BlenderWebPractice"
+            target="_blank"
+            rel="noreferrer"
+          >
             GitHub
           </a>
         </footer>

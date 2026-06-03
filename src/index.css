@@ -53,13 +53,24 @@ body {
   color: var(--muted);
 }
 
-/* ── Scroll overlay (HTML synced to the 3 acts) ──────────────── */
+/* ── Page-to-page cut (black layer, opacity driven by scroll) ── */
+.cut-fade {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: #050608;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Scroll overlay (HTML synced to the acts) ────────────────── */
 .overlay-root {
   width: 100vw;
   pointer-events: none;
 }
 
 .act {
+  position: relative; /* anchor each act's scroll-cue to itself, not the viewport */
   width: 100vw;
   height: 100vh;
   display: flex;
